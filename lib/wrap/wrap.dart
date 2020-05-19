@@ -73,6 +73,14 @@ class WrapperState extends State<Wrapper> {
       return widget.child(_utils, ctx);
     });
   }
+
+  double wrapWidth(double px) {
+    return screenWidth / widget.designWidth * px;
+  }
+
+  double wrapHeight(double px) {
+    return screenHeight / widget.designHeight * px;
+  }
 }
 
 class WrapperUtils {
