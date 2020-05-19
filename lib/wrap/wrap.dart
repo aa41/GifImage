@@ -34,27 +34,19 @@ class WrapperState extends State<Wrapper> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (screenHeight == 0 || screenWidth == 0) {
-        screenWidth = MediaQuery.of(context).size.width;
-        screenHeight = MediaQuery.of(context).size.height;
-        if (screenWidth == 0 || screenHeight == 0) {
-          var defaultMetricsChanged = window.onMetricsChanged;
-          window.onMetricsChanged = () {
-            defaultMetricsChanged?.call();
-            if (!window.physicalSize.isEmpty) {
-              screenWidth = window.physicalSize.width / window.devicePixelRatio;
-              screenHeight =
-                  window.physicalSize.height / window.devicePixelRatio;
-              _utils = WrapperUtils(screenWidth, screenHeight,
-                  widget.designWidth, widget.designHeight);
-              window.onMetricsChanged = defaultMetricsChanged;
-              if (mounted) {
-                setState(() {});
-              }
-            }
-          };
+      var defaultMetricsChanged = window.onMetricsChanged;
+      window.onMetricsChanged = () {
+        defaultMetricsChanged?.call();
+        if (!window.physicalSize.isEmpty) {
+          screenWidth = window.physicalSize.width / window.devicePixelRatio;
+          screenHeight = window.physicalSize.height / window.devicePixelRatio;
+          _utils = WrapperUtils(screenWidth, screenHeight, widget.designWidth,
+              widget.designHeight);
+          if (mounted) {
+            setState(() {});
+          }
         }
-      }
+      };
     });
   }
 

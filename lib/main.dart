@@ -45,8 +45,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // in the middle of the parent.
         child: Wrapper(designWidth: 500, designHeight: 500, child: (utils,ctx){
           return Container(
-            width: utils.wrapWidth(100),
-            height: utils.wrapHeight(300),
+            width: utils.wrapWidth(500),
+            height: utils.wrapHeight(500),
             color: Colors.red,
           );
         })
