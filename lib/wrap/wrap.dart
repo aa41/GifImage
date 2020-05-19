@@ -18,8 +18,8 @@ class Wrapper extends StatefulWidget {
         assert(designHeight != null),
         super(key: key);
 
-  static WrapperState of(BuildContext context) {
-    return context.ancestorStateOfType(TypeMatcher<WrapperState>());
+  static WrapperUtils of(BuildContext context) {
+    return (context.ancestorStateOfType(TypeMatcher<WrapperState>()) as WrapperState)?.utils;
   }
 
   @override
@@ -66,13 +66,8 @@ class WrapperState extends State<Wrapper> {
     });
   }
 
-  double wrapWidth(double px) {
-    return screenWidth / widget.designWidth * px;
-  }
-
-  double wrapHeight(double px) {
-    return screenHeight / widget.designHeight * px;
-  }
+  WrapperUtils get utils => _utils;
+  
 }
 
 class WrapperUtils {
