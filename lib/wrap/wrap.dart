@@ -19,7 +19,9 @@ class Wrapper extends StatefulWidget {
         super(key: key);
 
   static WrapperUtils of(BuildContext context) {
-    return (context.ancestorStateOfType(TypeMatcher<WrapperState>()) as WrapperState)?.utils;
+    return (context.ancestorStateOfType(TypeMatcher<WrapperState>())
+            as WrapperState)
+        ?.utils;
   }
 
   @override
@@ -29,25 +31,24 @@ class Wrapper extends StatefulWidget {
 class WrapperState extends State<Wrapper> {
   double screenWidth = 0, screenHeight = 0;
   WrapperUtils _utils;
+  Function defaultMetricsChanged;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      var defaultMetricsChanged = window.onMetricsChanged;
-      window.onMetricsChanged = () {
-        defaultMetricsChanged?.call();
-        if (!window.physicalSize.isEmpty) {
-          screenWidth = window.physicalSize.width / window.devicePixelRatio;
-          screenHeight = window.physicalSize.height / window.devicePixelRatio;
-          _utils = WrapperUtils(screenWidth, screenHeight, widget.designWidth,
-              widget.designHeight);
-          if (mounted) {
-            setState(() {});
-          }
+    defaultMetricsChanged = window.onMetricsChanged;
+    window.onMetricsChanged = () {
+      defaultMetricsChanged?.call();
+      if (!window.physicalSize.isEmpty) {
+        screenWidth = window.physicalSize.width / window.devicePixelRatio;
+        screenHeight = window.physicalSize.height / window.devicePixelRatio;
+        _utils = WrapperUtils(
+            screenWidth, screenHeight, widget.designWidth, widget.designHeight);
+        if (mounted) {
+          setState(() {});
         }
-      };
-    });
+      }
+    };
   }
 
   @override
@@ -68,6 +69,11 @@ class WrapperState extends State<Wrapper> {
 
   WrapperUtils get utils => _utils;
 
+  @override
+  void dispose() {
+    window.onMetricsChanged = defaultMetricsChanged;
+    super.dispose();
+  }
 }
 
 class WrapperUtils {

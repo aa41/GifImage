@@ -31,13 +31,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   AnimationController _controller;
 
   void _incrementCounter() {
-    _controller.forward(from: 0.0);
+    _controller.reverse(from: 1.0);
   }
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this,duration: Duration(milliseconds: 2000));
+    _controller = AnimationController(vsync: this,duration: Duration(milliseconds: 5000));
+    _controller.forward(from: 0.0);
   }
 
   @override
@@ -51,8 +52,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         // in the middle of the parent.
         child: Wrapper(designWidth: 500, designHeight: 500, child: (utils,ctx){
           return Container(
-            width: utils.wrapWidth(500),
-            height: utils.wrapHeight(500),
+            width: utils.wrapWidth(200),
+            height: utils.wrapHeight(200),
             color: Colors.red,
             child: TextAnimatorWidget(
               text: Text('飞流直下三千尺,飞流直下三千尺,飞流直下三千尺,飞流直下三千尺,飞流直下三千尺,飞流直下三千尺',style: TextStyle(fontSize: 16,color: Colors.white),),
