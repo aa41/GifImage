@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gif_image/text/text_animator.dart';
 import 'package:gif_image/wrap/wrap.dart';
 
 void main() => runApp(MyApp());
@@ -25,13 +26,18 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+
+  AnimationController _controller;
 
   void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+    _controller.forward(from: 0.0);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this,duration: Duration(milliseconds: 2000));
   }
 
   @override
@@ -48,6 +54,10 @@ class _MyHomePageState extends State<MyHomePage> {
             width: utils.wrapWidth(500),
             height: utils.wrapHeight(500),
             color: Colors.red,
+            child: TextAnimatorWidget(
+              text: Text('飞流直下三千尺,飞流直下三千尺,飞流直下三千尺,飞流直下三千尺,飞流直下三千尺,飞流直下三千尺',style: TextStyle(fontSize: 16,color: Colors.white),),
+              controller: _controller,
+            ),
           );
         })
       ),

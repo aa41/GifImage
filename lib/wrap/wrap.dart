@@ -67,7 +67,7 @@ class WrapperState extends State<Wrapper> {
   }
 
   WrapperUtils get utils => _utils;
-  
+
 }
 
 class WrapperUtils {
