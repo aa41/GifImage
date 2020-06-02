@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:gif_image/text/text_animator.dart';
 import 'package:gif_image/wrap/wrap.dart';
@@ -30,18 +32,22 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   AnimationController _controller;
+  int count = 200;
+  ScrollIndexController _scrollIndexController;
 
   void _incrementCounter() {
-    _controller.reverse(from: 1.0);
-
+    count = Random().nextInt(1000);
+    int random = Random().nextInt(count);
+    print("index:${random}");
+    _scrollIndexController.jumpToIndex(random,offset: 50);
+    setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    defaultScrollTrackListener = (itemContext){
-
-    };
+    _scrollIndexController = new ScrollIndexController();
+    defaultScrollTrackListener = (itemContext) {};
     _controller = AnimationController(
         vsync: this, duration: Duration(milliseconds: 5000));
     _controller.forward(from: 0.0);
@@ -80,17 +86,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Expanded(
                         child: ScrollTrack(
                       child: ListView.builder(
+                        controller: _scrollIndexController,
                         itemBuilder: (context, index) {
                           return TrackItem(
                             index: index,
                             child: Container(
                               height: 100,
-                              child: Center(child: Text("index:$index",style: TextStyle(color: Colors.white,fontSize: 20),),),
+                              child: Center(
+                                child: Text(
+                                  "index:$index",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 20),
+                                ),
+                              ),
                               color: index % 2 == 0 ? Colors.red : Colors.blue,
                             ),
                           );
                         },
-                        itemCount:50 ,
+                        itemCount: count,
                       ),
                     ))
                   ],

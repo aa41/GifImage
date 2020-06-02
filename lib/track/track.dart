@@ -1,16 +1,129 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 
 const TRACK_TAG = "Track:";
 
 typedef void OnScrollTrackListener(ItemContext context);
 
-OnScrollTrackListener defaultScrollTrackListener = (ItemContext itemContext) {
-  // debugPrint("$TRACK_TAG ---scroll---id: ${itemContext.id}----data:${itemContext?.data?.toString()}");
-};
+OnScrollTrackListener defaultScrollTrackListener = (ItemContext itemContext) {};
+
+class ScrollIndexController extends ScrollController {
+  Future<void> jumpToIndex(int index, {double offset = 0.0}) async {
+    await _awaitToNextFrame();
+    if (scrollTrackState?.items == null ||
+        (scrollTrackState?.items?.isEmpty ?? true)) return;
+
+    ItemContext itemContext = containsIndex(index);
+    if (itemContext != null) {
+      if (itemContext.context != null) {
+        await _awaitToJump(itemContext, offset);
+      }
+    } else {
+      await _awaitNearToTarget(index);
+      ItemContext itemContext = containsIndex(index);
+      if (itemContext != null) {
+        if (itemContext.context != null) {
+          await _awaitToJump(itemContext, offset);
+        }
+      }
+    }
+  }
+
+  Future _awaitToJump(ItemContext itemContext, double offset) async {
+    RenderObject renderObject = itemContext.context.findRenderObject();
+    if (renderObject != null && renderObject.attached) {
+      double _currentOffset = _offsetToReveal(renderObject);
+      await _jumpToTarget(_currentOffset, offset);
+    }
+  }
+
+  Future<void> _jumpToTarget(double _currentOffset, double offset) async {
+    if (_currentOffset + offset > position.maxScrollExtent) {
+      jumpTo(position.maxScrollExtent);
+    } else {
+      jumpTo(_currentOffset + offset);
+    }
+  }
+
+  Future<void> _awaitNearToTarget(int index) async {
+    for (int i = 0; i < 180; i++) {
+      int _min = _minIndex?.index ?? pow(2, 32);
+      int _max = _maxIndex?.index ?? -1;
+      if (index >= _min && index <= _max) {
+        break;
+      } else {
+        if (index < _min) {
+          await _awaitToJump(_minIndex, 0.0);
+        } else if (index > _max) {
+          await _awaitToJump(_maxIndex, 0.0);
+        }
+        await _awaitToNextFrame();
+      }
+    }
+  }
+
+  ItemContext get _minIndex {
+    List<ItemContext> items = scrollTrackState?.items;
+    if (items == null || items.isEmpty) return null;
+
+    int _min = pow(2, 32);
+    ItemContext _current;
+    for (ItemContext itemContext in items) {
+      _min = min(_min, itemContext.index);
+      if (_min == itemContext.index) {
+        _current = itemContext;
+      }
+    }
+
+    return _current;
+  }
+
+  ItemContext get _maxIndex {
+    List<ItemContext> items = scrollTrackState?.items;
+    if (items == null || items.isEmpty) return null;
+
+    int _max = -1;
+    ItemContext _current;
+    for (ItemContext itemContext in items) {
+      _max = max(_max, itemContext.index);
+      if (_max == itemContext.index) {
+        _current = itemContext;
+      }
+    }
+
+    return _current;
+  }
+
+  double _offsetToReveal(RenderObject renderObject) {
+    RenderAbstractViewport viewport = RenderAbstractViewport.of(renderObject);
+    double _currentOffset =
+        viewport.getOffsetToReveal(renderObject, 0.0).offset;
+    return _currentOffset;
+  }
+
+  Future<void> _awaitToNextFrame() {
+    return SchedulerBinding.instance.endOfFrame;
+  }
+
+  ItemContext containsIndex(int index) {
+    List<ItemContext> items = scrollTrackState?.items;
+    if (items == null || items.isEmpty) return null;
+    for (ItemContext itemContext in items) {
+      if (itemContext.index == index) {
+        return itemContext;
+      }
+    }
+    return null;
+  }
+
+  ScrollTrackState get scrollTrackState =>
+      ScrollTrack.of((position?.context as ScrollableState)?.context);
+}
 
 class ScrollTrack extends StatefulWidget {
   final Widget child;
@@ -26,37 +139,25 @@ class ScrollTrack extends StatefulWidget {
 }
 
 class ScrollTrackState extends State<ScrollTrack> {
-  Set<ItemContext> _items;
+  List<ItemContext> _items;
 
-  StreamController<ScrollNotification> controller;
+  StreamController<ScrollNotification> _controller;
   Stream<ScrollNotification> broadCaseStream;
   bool isFirstScrollInit = true;
 
-  bool isScrolling = true;
-
   @override
   void initState() {
-    _items = HashSet();
-    controller = StreamController<ScrollNotification>();
-    broadCaseStream = controller.stream.asBroadcastStream();
-    broadCaseStream.listen(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      _tryFirstInit();
-    });
     super.initState();
+    _items = [];
+    _controller = StreamController<ScrollNotification>();
+    broadCaseStream = _controller.stream.asBroadcastStream();
   }
+
+  List<ItemContext> get items => _items;
 
   @override
   void didUpdateWidget(ScrollTrack oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _tryFirstInit();
-  }
-
-  void _tryFirstInit() {
-    if (isFirstScrollInit) {
-      _onEvent();
-      isFirstScrollInit = false;
-    }
   }
 
   @override
@@ -65,8 +166,8 @@ class ScrollTrackState extends State<ScrollTrack> {
       child: widget.child,
       onNotification: (ScrollNotification notification) {
         try {
-          if (!controller.isPaused && !controller.isClosed) {
-            controller.sink.add(notification);
+          if (!_controller.isPaused && !_controller.isClosed) {
+            _controller.sink.add(notification);
           }
         } catch (err) {
           debugPrint("$TRACK_TAG${err.toString()}");
@@ -81,72 +182,19 @@ class ScrollTrackState extends State<ScrollTrack> {
   void dispose() {
     _items.clear();
     _items = null;
-    controller.close();
-    controller = null;
+    _controller.close();
+    _controller = null;
     super.dispose();
   }
 
-  bool addItem(ItemContext context) {
-    return _items.add(context);
+  void addItem(ItemContext context) {
+    if (!_items.contains(context)) {
+      _items.add(context);
+    }
   }
 
   bool removeItem(ItemContext context) {
     return _items.remove(context);
-  }
-
-  void _onScroll(ScrollNotification event) {
-    if (event is! ScrollEndNotification) return;
-    _onEvent();
-  }
-
-  void _onEvent() {
-    if (_items?.isEmpty ?? true) {
-      return;
-    }
-
-    double vpHeight = 0.0;
-
-    for (ItemContext itemContext in _items) {
-      if (itemContext == null) continue;
-
-      RenderObject renderObject = itemContext.context.findRenderObject();
-
-      if (renderObject == null || !renderObject.attached) continue;
-
-      final RenderAbstractViewport viewport =
-          RenderAbstractViewport.of(renderObject);
-      if (viewport == null) return;
-      ScrollableState scrollableState = Scrollable.of(itemContext.context);
-      ScrollPosition scrollPosition = scrollableState.position;
-      RevealedOffset vpOffset = viewport.getOffsetToReveal(renderObject, 0.0);
-      final Size size = renderObject?.semanticBounds?.size;
-
-      double deltaTop;
-      double deltaBottom;
-
-      if (scrollPosition.axis == Axis.vertical) {
-        vpHeight = viewport.paintBounds.height;
-        deltaTop = vpOffset.offset - scrollPosition.pixels;
-        deltaBottom = deltaTop + size.height;
-
-      } else if (scrollPosition.axis == Axis.horizontal) {
-        vpHeight = viewport.paintBounds.width;
-        deltaTop = vpOffset.offset - scrollPosition.pixels;
-        deltaBottom = deltaTop + size.width;
-      }
-      bool isInViewport = false;
-
-      isInViewport = (deltaTop >= 0 && deltaTop < vpHeight);
-
-      if (!isInViewport) {
-        isInViewport = (deltaBottom > 0.0 && deltaBottom < vpHeight);
-      }
-      if (isInViewport) {
-        defaultScrollTrackListener(itemContext);
-      }
-
-        print("${itemContext.id}-----> offset:${vpOffset.offset}----isIn:$isInViewport");
-    }
   }
 }
 
@@ -169,9 +217,64 @@ class _TrackItemState extends State<TrackItem> {
 
   ItemContext _currentContext;
 
+  StreamSubscription<ScrollNotification> streamSubscription;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      streamSubscription = _parent?.broadCaseStream?.listen(_onScroll);
+      _onEvent();
+    });
+  }
+
+  void _onScroll(ScrollNotification event) {
+    if (event is! ScrollEndNotification) return;
+    _onEvent();
+  }
+
+  void _onEvent() {
+    double vpHeight = 0.0;
+
+    if (_currentContext == null) return;
+
+    RenderObject renderObject = _currentContext.context.findRenderObject();
+
+    if (renderObject == null || !renderObject.attached) return;
+
+    final RenderAbstractViewport viewport =
+        RenderAbstractViewport.of(renderObject);
+    if (viewport == null) return;
+    ScrollableState scrollableState = Scrollable.of(_currentContext.context);
+    ScrollPosition scrollPosition = scrollableState.position;
+    RevealedOffset vpOffset = viewport.getOffsetToReveal(renderObject, 0.0);
+    final Size size = renderObject?.semanticBounds?.size;
+
+    double deltaTop;
+    double deltaBottom;
+
+    if (scrollPosition.axis == Axis.vertical) {
+      vpHeight = viewport.paintBounds.height;
+      deltaTop = vpOffset.offset - scrollPosition.pixels;
+      deltaBottom = deltaTop + size.height;
+    } else if (scrollPosition.axis == Axis.horizontal) {
+      vpHeight = viewport.paintBounds.width;
+      deltaTop = vpOffset.offset - scrollPosition.pixels;
+      deltaBottom = deltaTop + size.width;
+    }
+    bool isInViewport = false;
+
+    isInViewport = (deltaTop >= 0 && deltaTop < vpHeight);
+
+    if (!isInViewport) {
+      isInViewport = (deltaBottom > 0.0 && deltaBottom < vpHeight);
+    }
+
+    if (isInViewport && !_currentContext.exposure) {
+      defaultScrollTrackListener(_currentContext);
+    }
+    _currentContext.exposure = isInViewport;
+    // print("${_currentContext.index}-----> offset:${vpOffset.offset}----isIn:$isInViewport");
   }
 
   @override
@@ -191,6 +294,9 @@ class _TrackItemState extends State<TrackItem> {
   @override
   void dispose() {
     _parent?.removeItem(_currentContext);
+    _currentContext = null;
+    streamSubscription?.cancel();
+    streamSubscription = null;
     super.dispose();
   }
 
@@ -212,8 +318,9 @@ class _TrackItemState extends State<TrackItem> {
 
 class ItemContext {
   final BuildContext context;
-  final int id;
+  final int index;
   final dynamic data;
+  bool exposure = false;
 
-  ItemContext(this.context, this.id, {this.data});
+  ItemContext(this.context, this.index, {this.data});
 }
