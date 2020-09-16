@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:gif_image/router/m_router.dart';
 import 'package:gif_image/router/utils/utils.dart';
 import 'package:gif_image/router/writer/tpl.dart';
@@ -66,8 +67,6 @@ class Collector {
         modelCls.addField(element);
       });
 
-
-
       modelCls.createConstructor(fields: _fieldWriter, isConst: true);
 
       String _switchTplContent = '''
@@ -83,14 +82,13 @@ class Collector {
       routerArgs.add(SwitchTplModel('${value.url}', '$_switchTplContent',
           switchCases: _aliasName));
 
-
       List<FieldWriter> _methodField = _fieldWriter.map((e) {
         return FieldWriter(
             type: e.type,
             name: e.name,
             isFinal: e.isFinal,
             isConstructorParamsAndHasThisField:
-            e.isConstructorParamsAndHasThisField,
+                e.isConstructorParamsAndHasThisField,
             value: e.name);
       }).toList();
       MethodWriter pushTo = extensionWriter.createMethod(
@@ -99,7 +97,7 @@ class Collector {
           params: _fieldWriter,
           isParamNamed: true);
       pushTo.appendMethodContent(
-          " return this.routerProvider.pushName(this, '${value.url}',arguments: ${modelCls.toInitializedString(fields: _methodField, isParamNamed: true)});");
+          " return this.routerProvider.pushName<T>(this, '${value.url}',arguments: ${modelCls.toInitializedString(fields: _methodField, isParamNamed: true)});");
 
       var argumentsCurrentAsync = extensionWriter.createMethod(
         returnType: 'Future<$modelName>',
@@ -161,14 +159,20 @@ class Collector {
   FieldInfo _formatDartObject(DartObject dartObject) {
     if (dartObject == null || dartObject.isNull) return null;
     FieldInfo info;
-    ParameterizedType type = dartObject.type;
-    info = _formatParamType(type, dartObject: dartObject);
+    info = _formatParamType(dartObject);
     return info;
   }
 
-  FieldInfo _formatParamType(ParameterizedType type, {DartObject dartObject}) {
+  FieldInfo _formatParamType(DartObject dartObject) {
     FieldInfo info;
-    if (type.isDartCoreString) {
+    ParameterizedType type = dartObject.type;
+    //判断其为type
+    if (dartObject.toTypeValue() != null) {
+      DartType type = dartObject.toTypeValue();
+      dWriter.appendImport('package:${type.element.source.uri.path}');
+      info = FieldInfo(type.getDisplayString(withNullability: false),
+          type.element.runtimeType);
+    } else if (type.isDartCoreString) {
       info = FieldInfo('String', dartObject?.toStringValue() ?? "");
     } else if (type.isDartCoreBool) {
       info = FieldInfo('bool', dartObject?.toBoolValue() ?? false);

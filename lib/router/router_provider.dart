@@ -8,19 +8,19 @@ abstract class IRouterProvider {
   Future<T> pushName<T>(BuildContext context, String routeName,
       {Object arguments});
 
-  Future<T> pushNamedAndRemoveUntil<T>(
-      BuildContext context, String newRouteName, RoutePredicate predicate,
+  Future<T> pushNamedAndRemoveUntil<T>(BuildContext context,
+      String newRouteName, RoutePredicate predicate,
       {Object arguments});
 
   Future<T> pushReplacementNamed<T>(BuildContext context, String routeName,
       {Object arguments});
 
   Future<T> popAndPushNamed<T extends Object, TO extends Object>(
-    BuildContext context,
-    String routeName, {
-    TO result,
-    Object arguments,
-  });
+      BuildContext context,
+      String routeName, {
+        TO result,
+        Object arguments,
+      });
 
   Future<T> argumentsAsync<T>(BuildContext context);
 
@@ -29,8 +29,8 @@ abstract class IRouterProvider {
 
   Widget buildNotFoundWidget(RouteSettings settings);
 
-  Route<dynamic> buildCustomRoute(
-      String url, dynamic arguments, WidgetBuilder builder);
+  Route<dynamic> buildCustomRoute(String url, dynamic arguments,
+      WidgetBuilder builder);
 }
 
 class MXCRouter {
@@ -38,17 +38,24 @@ class MXCRouter {
 
   static MXCRouter get instance => _instance;
 
-  IRouterProvider _provider = _DefaultRouterProvider();
+  IRouterProvider _provider;
 
   void registerRouterProvider(IRouterProvider provider) {
     this._provider = provider;
+  }
+
+  void init() {
+    _provider = _DefaultRouterProvider();
   }
 
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return mxcOnGenerateRoute(settings);
   }
 
-  IRouterProvider get provider => _provider;
+  IRouterProvider get provider {
+    _provider ??= _DefaultRouterProvider();
+    return _provider;
+  }
 }
 
 class _DefaultRouterProvider extends IRouterProvider {
@@ -74,8 +81,8 @@ class _DefaultRouterProvider extends IRouterProvider {
   }
 
   @override
-  Future<T> pushNamedAndRemoveUntil<T>(
-      BuildContext context, String newRouteName, predicate,
+  Future<T> pushNamedAndRemoveUntil<T>(BuildContext context,
+      String newRouteName, predicate,
       {Object arguments}) {
     return Navigator.pushNamedAndRemoveUntil(context, newRouteName, predicate,
         arguments: arguments);
@@ -90,16 +97,28 @@ class _DefaultRouterProvider extends IRouterProvider {
 
   @override
   T arguments<T>(BuildContext context) {
-    return ModalRoute?.of(context)?.settings?.arguments;
+    return ModalRoute
+        ?.of(context)
+        ?.settings
+        ?.arguments;
   }
 
   @override
   Future<T> argumentsAsync<T>(BuildContext context) async {
-    if (ModalRoute?.of(context)?.settings?.arguments == null) {
+    if (ModalRoute
+        ?.of(context)
+        ?.settings
+        ?.arguments == null) {
       await SchedulerBinding.instance.endOfFrame;
-      return ModalRoute?.of(context)?.settings?.arguments;
+      return ModalRoute
+          ?.of(context)
+          ?.settings
+          ?.arguments;
     }
-    return ModalRoute?.of(context)?.settings?.arguments;
+    return ModalRoute
+        ?.of(context)
+        ?.settings
+        ?.arguments;
   }
 
   @override

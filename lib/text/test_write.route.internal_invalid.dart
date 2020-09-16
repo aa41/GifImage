@@ -77,12 +77,12 @@ class $MainModel {
   final String $a1;
   final int $a2;
   final Map<String, dynamic> $a3;
-  final A $a4;
+  final A $a5;
   const $MainModel({
     this.$a1,
     this.$a2,
     this.$a3,
-    this.$a4,
+    this.$a5,
   });
 }
 
@@ -101,7 +101,7 @@ extension MXCRouterBuildContext on BuildContext {
     final Map<String, dynamic> $a3,
     final A $a4,
   }) {
-    return this.routerProvider.pushName(this, 'home/index',
+    return this.routerProvider.pushName<T>(this, 'home/index',
         arguments: $HomeIndexModel($a1: $a1, $a2: $a2, $a3: $a3, $a4: $a4));
   }
 
@@ -119,7 +119,7 @@ extension MXCRouterBuildContext on BuildContext {
     final Map<String, dynamic> $a3,
     final A $a4,
   }) {
-    return this.routerProvider.pushName(this, 'home/mine',
+    return this.routerProvider.pushName<T>(this, 'home/mine',
         arguments: $HomeMineModel($a1: $a1, $a2: $a2, $a3: $a3, $a4: $a4));
   }
 
@@ -135,10 +135,10 @@ extension MXCRouterBuildContext on BuildContext {
     final String $a1,
     final int $a2,
     final Map<String, dynamic> $a3,
-    final A $a4,
+    final A $a5,
   }) {
-    return this.routerProvider.pushName(this, 'main',
-        arguments: $MainModel($a1: $a1, $a2: $a2, $a3: $a3, $a4: $a4));
+    return this.routerProvider.pushName<T>(this, 'main',
+        arguments: $MainModel($a1: $a1, $a2: $a2, $a3: $a3, $a5: $a5));
   }
 
   Future<$MainModel> argumentsAsyncMain() async {

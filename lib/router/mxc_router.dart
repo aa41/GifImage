@@ -15,8 +15,8 @@ class MxcRouterGen extends GeneratorForAnnotation<MRouter> {
   static Collector collector = new Collector();
 
   @override
-  generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) {
+  generateForAnnotatedElement(Element element, ConstantReader annotation,
+      BuildStep buildStep) {
     if (element is! ClassElement) throw "must annotated on class";
     if (element is ClassElement) {
       bool isWidget = false;
@@ -31,12 +31,12 @@ class MxcRouterGen extends GeneratorForAnnotation<MRouter> {
     }
 
     if (buildStep.inputId.path.contains('lib/')) {
-      collector.dWriter.appendImport("package:${buildStep.inputId.package}/${buildStep.inputId.path.replaceFirst('lib/', '')}");
+      collector.dWriter.appendImport(
+          "package:${buildStep.inputId.package}/${buildStep.inputId.path
+              .replaceFirst('lib/', '')}");
     } else {
       collector.dWriter.appendImport("${buildStep.inputId.path};");
     }
-
-
 
 
     var aliasNamesField = annotation.peek("aliasNames");
@@ -52,7 +52,7 @@ class MxcRouterGen extends GeneratorForAnnotation<MRouter> {
         aliasNames: aliasNamesField.listValue ?? [],
         params: paramsField?.mapValue ?? {});
 
-    collector.collect(urlField.stringValue, _router,element.name);
+    collector.collect(urlField.stringValue, _router, element.name);
 
     return null;
   }
@@ -64,9 +64,11 @@ class MXCWriteRouterGen extends GeneratorForAnnotation<MXCWriterRouter> {
   }
 
   @override
-  generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) {
+  generateForAnnotatedElement(Element element, ConstantReader annotation,
+      BuildStep buildStep) {
     if (element is! ClassElement) throw "must annotated on class";
+
+
 
     return getCollector().write();
   }
