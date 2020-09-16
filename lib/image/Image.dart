@@ -43,5 +43,6 @@ class NativeImageManager {
     return _cacheTextureId.putIfAbsent(key, () {
       return _textureId;
     });
+
   }
 }

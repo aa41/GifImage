@@ -10,7 +10,9 @@ const TRACK_TAG = "Track:";
 
 typedef void OnScrollTrackListener(ItemContext context);
 
-OnScrollTrackListener defaultScrollTrackListener = (ItemContext itemContext) {};
+OnScrollTrackListener defaultScrollTrackListener = (ItemContext itemContext) {
+  print("scroll--------${itemContext.index}");
+};
 
 class ScrollIndexController extends ScrollController {
   Future<void> jumpToIndex(int index, {double offset = 0.0}) async {
@@ -111,14 +113,7 @@ class ScrollIndexController extends ScrollController {
   }
 
   ItemContext containsIndex(int index) {
-    List<ItemContext> items = scrollTrackState?.items;
-    if (items == null || items.isEmpty) return null;
-    for (ItemContext itemContext in items) {
-      if (itemContext.index == index) {
-        return itemContext;
-      }
-    }
-    return null;
+    return scrollTrackState?.getIndex(index);
   }
 
   ScrollTrackState get scrollTrackState =>
@@ -140,6 +135,7 @@ class ScrollTrack extends StatefulWidget {
 
 class ScrollTrackState extends State<ScrollTrack> {
   List<ItemContext> _items;
+  Map<int, ItemContext> _itemCaches;
 
   StreamController<ScrollNotification> _controller;
   Stream<ScrollNotification> broadCaseStream;
@@ -149,6 +145,7 @@ class ScrollTrackState extends State<ScrollTrack> {
   void initState() {
     super.initState();
     _items = [];
+    _itemCaches = {};
     _controller = StreamController<ScrollNotification>();
     broadCaseStream = _controller.stream.asBroadcastStream();
   }
@@ -182,6 +179,8 @@ class ScrollTrackState extends State<ScrollTrack> {
   void dispose() {
     _items.clear();
     _items = null;
+    _itemCaches.clear();
+    _itemCaches = null;
     _controller.close();
     _controller = null;
     super.dispose();
@@ -190,11 +189,17 @@ class ScrollTrackState extends State<ScrollTrack> {
   void addItem(ItemContext context) {
     if (!_items.contains(context)) {
       _items.add(context);
+      _itemCaches[context.index] = context;
     }
   }
 
   bool removeItem(ItemContext context) {
+    _itemCaches.remove(context.index);
     return _items.remove(context);
+  }
+
+  ItemContext getIndex(int index) {
+    return _itemCaches[index];
   }
 }
 
@@ -274,7 +279,7 @@ class _TrackItemState extends State<TrackItem> {
       defaultScrollTrackListener(_currentContext);
     }
     _currentContext.exposure = isInViewport;
-    // print("${_currentContext.index}-----> offset:${vpOffset.offset}----isIn:$isInViewport");
+   //  print("${_currentContext.index}-----> offset:${vpOffset.offset}----isIn:$isInViewport");
   }
 
   @override

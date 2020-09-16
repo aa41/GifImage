@@ -1,0 +1,31 @@
+targets:
+  $default:
+    builders:
+      mxc_router_gen:
+        enabled: true
+        generate_for:
+          exclude: ['**.internal.dart']
+      mxc_write_router_gen:
+        enabled: true
+        options: { 'write': true }
+        generate_for:
+          exclude: ['**.internal.dart']
+
+
+builders:
+  mxc_router_gen:
+    target: ":mxc_router"
+    import: "package:gif_image/router/builder.dart"
+    builder_factories: ["mxcRouter"]
+    build_extensions: {".dart": [".internal.dart"]}
+    auto_apply: all_packages
+    build_to: source
+
+  mxc_write_router_gen:
+    target: ":mxc_write_router"
+    import: "package:gif_image/router/builder.dart"
+    builder_factories: ["mxcWriteRouter"]
+    build_extensions: {".route.dart": [".internal_invalid.dart"]}
+    auto_apply: all_packages
+    runs_before: ['mxc_router_gen']
+    build_to: source
