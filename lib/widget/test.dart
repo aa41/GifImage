@@ -7,10 +7,9 @@ import '../router/m_router.dart';
 @MRouter(aliasNames: [
   '/',
 ], params: {
-  'a1': '2',
-  'a2': 3,
+  'a1': String,
+  'a2': double,
   'a3': {'1': 2, '3': '4'},
- // 'a4': ClsFieldInfo(package: 'package:gif_image/widget/test.dart', clsName: 'A'),
   'a5':A
 }, url: 'main')
 class Test extends StatefulWidget {

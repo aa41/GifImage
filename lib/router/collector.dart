@@ -9,6 +9,8 @@ import 'package:gif_image/router/utils/utils.dart';
 import 'package:gif_image/router/writer/tpl.dart';
 import 'package:gif_image/router/writer/writer.dart';
 
+const _packWhiteList = ['core'];
+
 class Collector {
   Map<String, MRouterInfo> _params = {};
   Map<String, String> _clsCaches = {};
@@ -163,13 +165,23 @@ class Collector {
     return info;
   }
 
+  bool isNotInWhiteList(String path) {
+    return _packWhiteList.where((element) {
+      return path.startsWith(element);
+    }).isEmpty;
+  }
+
   FieldInfo _formatParamType(DartObject dartObject) {
     FieldInfo info;
     ParameterizedType type = dartObject.type;
     //判断其为type
     if (dartObject.toTypeValue() != null) {
       DartType type = dartObject.toTypeValue();
-      dWriter.appendImport('package:${type.element.source.uri.path}');
+      var path = type?.element?.source?.uri?.path;
+      if (path != null && isNotInWhiteList(path)) {
+        dWriter.appendImport('package:$path');
+      }
+
       info = FieldInfo(type.getDisplayString(withNullability: false),
           type.element.runtimeType);
     } else if (type.isDartCoreString) {
@@ -260,19 +272,7 @@ class Collector {
     } else if (type.isDartCoreFunction) {
       info = FieldInfo("dynamic", dartObject?.toFunctionValue()?.name ?? '');
     } else {
-      Element element = type.element;
-      if (element is ClassElement &&
-          element.name == 'ClsFieldInfo' &&
-          dartObject != null) {
-        String packageName = dartObject?.getField('package')?.toStringValue();
-        if (packageName != null && packageName.isNotEmpty) {
-          dWriter.appendImport('$packageName');
-        }
-        String clsName = dartObject?.getField('clsName')?.toStringValue();
-        info = FieldInfo(clsName, type.element.runtimeType);
-      } else {
-        info = FieldInfo("dynamic", type.element.runtimeType);
-      }
+      info = FieldInfo("dynamic", type.element.runtimeType);
     }
     return info;
   }

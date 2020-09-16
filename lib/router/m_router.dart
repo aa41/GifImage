@@ -32,12 +32,6 @@ class FieldInfo {
   }
 }
 
-class ClsFieldInfo {
-  final String package;
-  final String clsName;
-
-  const ClsFieldInfo({this.package, this.clsName});
-}
 
 
 class MRouterInfo {

@@ -75,7 +75,7 @@ class $HomeMineModel {
 
 class $MainModel {
   final String $a1;
-  final int $a2;
+  final double $a2;
   final Map<String, dynamic> $a3;
   final A $a5;
   const $MainModel({
@@ -133,7 +133,7 @@ extension MXCRouterBuildContext on BuildContext {
 
   Future<T> pushNameToMain<T>({
     final String $a1,
-    final int $a2,
+    final double $a2,
     final Map<String, dynamic> $a3,
     final A $a5,
   }) {
