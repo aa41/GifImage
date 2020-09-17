@@ -113,7 +113,7 @@ class _DefaultRouterProvider extends IRouterProvider {
 
   @override
   Widget buildNotFoundWidget(RouteSettings settings) {
-    return Text('${settings.name}');
+    return ErrorWidget('not found ${settings.name}');
   }
 
   @override
