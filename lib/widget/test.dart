@@ -24,7 +24,7 @@ class _TestState extends State<Test> {
       body: Center(
         child: InkWell(
           onTap: (){
-            context.pushNameToHomeMine($a1: '111',$a2: 2,$a3: {'1':2},$a4: A());
+            context.pushNameToHomeMine($a1: '111',$a2: 2,$a3: {'1':2},);
 
           },
           child: Text('taptap'),

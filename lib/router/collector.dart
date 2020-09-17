@@ -1,15 +1,13 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:gif_image/router/m_router.dart';
 import 'package:gif_image/router/utils/utils.dart';
 import 'package:gif_image/router/writer/tpl.dart';
 import 'package:gif_image/router/writer/writer.dart';
 
-const _packWhiteList = ['core'];
+const _packWhiteList = ['core/'];
 
 class Collector {
   Map<String, MRouterInfo> _params = {};
@@ -39,6 +37,12 @@ class Collector {
         name: 'mxcOnGenerateRoute',
         params: [FieldWriter(type: 'RouteSettings', name: 'settings')],
         isParamNamed: false);
+
+    onGenerateRoute.appendMethodContent('''
+    if(MXCRouter.instance.provider.buildNotFoundWidget(settings) != null){
+    return MXCRouter.instance.provider.injectGenerateRoute(settings);
+  }
+    ''');
 
     List<SwitchTplModel> routerArgs = [];
 
@@ -100,6 +104,49 @@ class Collector {
           isParamNamed: true);
       pushTo.appendMethodContent(
           " return this.routerProvider.pushName<T>(this, '${value.url}',arguments: ${modelCls.toInitializedString(fields: _methodField, isParamNamed: true)});");
+
+      MethodWriter pushReplacementNamed = extensionWriter.createMethod(
+          returnType: 'Future<T>',
+          name: 'pushReplacementNamedTo$_url<T>',
+          params: _fieldWriter,
+          isParamNamed: true);
+      pushReplacementNamed.appendMethodContent(
+          " return this.routerProvider.pushReplacementNamed<T>(this, '${value.url}',arguments: ${modelCls.toInitializedString(fields: _methodField, isParamNamed: true)});");
+
+      List<FieldWriter> _popFields = _fieldWriter.map((e) {
+        return e;
+      }).toList()
+        ..add(FieldWriter(
+          type: 'T0',
+          name: 'result',
+        ));
+
+      MethodWriter popAndPushNamedTo = extensionWriter.createMethod(
+          returnType: 'Future<T>',
+          name: 'popAndPushNamedTo$_url<T,T0>',
+          params: _popFields,
+          isParamNamed: true);
+      popAndPushNamedTo.appendMethodContent(
+          "return this.routerProvider.popAndPushNamed<T,T0>(this, '${value.url}', arguments: ${modelCls.toInitializedString(fields: _methodField, isParamNamed: true)}, result: result);");
+
+      List<FieldWriter> _pushNamedAndRemoveUntilFields = _fieldWriter.map((e) {
+        return e;
+      }).toList()
+        ..add(FieldWriter(
+          type: 'RoutePredicate',
+          name: 'predicate',
+        ));
+
+      MethodWriter _pushNamedAndRemoveUntil = extensionWriter.createMethod(
+          returnType: 'Future<T>',
+          name: 'pushNamedTo${_url}AndRemoveUntil<T>',
+          params: _pushNamedAndRemoveUntilFields,
+          isParamNamed: true);
+
+      _pushNamedAndRemoveUntil.appendMethodContent('''
+      return this.routerProvider.pushNamedAndRemoveUntil(this, '${value.url}', predicate,arguments:  ${modelCls.toInitializedString(fields: _methodField, isParamNamed: true)});      
+      ''');
+
 
       var argumentsCurrentAsync = extensionWriter.createMethod(
         returnType: 'Future<$modelName>',

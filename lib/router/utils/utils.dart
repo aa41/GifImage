@@ -1,15 +1,19 @@
 class Utils {
   static String getNameByUrl(String url) {
     if (url == null || url.isEmpty) return null;
-
-    List<String> split = url.split('/');
-    if (split == null || split.isEmpty) return url;
-
-
     StringBuffer _buffer = StringBuffer('');
-    split.forEach((element) {
+    List<String> segments;
+    try {
+      Uri uri = Uri.parse(url);
+      segments = uri.pathSegments;
+    } catch (err) {
+      segments = url.split('/');
+    }
+    if (segments == null || segments.isEmpty) return url;
+    segments.forEach((element) {
       _buffer.write(element.firstUpperCase());
     });
+
     return _buffer.toString();
   }
 }
