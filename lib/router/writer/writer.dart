@@ -12,6 +12,10 @@ class DartWriter {
 
   Set<FieldWriter> _fieldCaches = LinkedHashSet();
 
+  List<String> _topComment;
+
+
+
   ClassWriter createNewClass(String className) {
     ClassWriter _clsWriter = new ClassWriter(className);
     _classCaches[className] = _clsWriter;
@@ -37,6 +41,14 @@ class DartWriter {
         isParamNamed: isParamNamed);
     _methodCaches.add(writer);
     return writer;
+  }
+
+  void appendComment(String comment){
+    if(_topComment == null){
+      _topComment = [];
+      _topComment.add('/*');
+    }
+    _topComment.add(comment);
   }
 
   ExtensionWriter createNewExtension(
@@ -68,6 +80,13 @@ class DartWriter {
 
     _import.forEach((element) {
       _buffer.write(element);
+    });
+
+    _topComment.add('*/');
+
+
+    _topComment.forEach((element) {
+      _buffer.write('$element\r\n');
     });
 
     _fieldCaches.forEach((element) {

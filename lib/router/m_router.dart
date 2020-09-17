@@ -39,11 +39,13 @@ class MRouterInfo {
   final List<DartObject> aliasNames;
   final String url;
   final String desc;
+  final String path;
 
   const MRouterInfo({
     this.url,
     this.desc,
     this.params,
     this.aliasNames,
+    this.path,
   });
 }

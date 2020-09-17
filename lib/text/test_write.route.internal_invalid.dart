@@ -4,11 +4,31 @@
 // Generator: MXCWriteRouterGen
 // **************************************************************************
 
+import 'package:flutter/material.dart';
+import 'package:gif_image/router/router_provider.dart';
 import 'package:gif_image/widget/test2.dart';
 import 'package:gif_image/widget/test3.dart';
 import 'package:gif_image/widget/test.dart';
-import 'package:flutter/material.dart';
-import 'package:gif_image/router/router_provider.dart';
+/*
+-----------------------------------------------------------------
+routerName == home/index
+packagePath == package:gif_image/widget/test2.dart
+className == Test2
+aliasNames == [1, 2]
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+routerName == home/mine
+packagePath == package:gif_image/widget/test3.dart
+className == Test3
+aliasNames == [1, 2]
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+routerName == main
+packagePath == package:gif_image/widget/test.dart
+className == Test
+aliasNames == [/]
+-----------------------------------------------------------------
+*/
 
 Route<dynamic> mxcOnGenerateRoute(
   RouteSettings settings,

@@ -15,8 +15,8 @@ class MxcRouterGen extends GeneratorForAnnotation<MRouter> {
   static Collector collector = new Collector();
 
   @override
-  generateForAnnotatedElement(Element element, ConstantReader annotation,
-      BuildStep buildStep) {
+  generateForAnnotatedElement(
+      Element element, ConstantReader annotation, BuildStep buildStep) {
     if (element is! ClassElement) throw "must annotated on class";
     if (element is ClassElement) {
       bool isWidget = false;
@@ -30,14 +30,13 @@ class MxcRouterGen extends GeneratorForAnnotation<MRouter> {
       if (!isWidget) throw "must annotated on Widget";
     }
 
+    String path = '';
     if (buildStep.inputId.path.contains('lib/')) {
-      collector.dWriter.appendImport(
-          "package:${buildStep.inputId.package}/${buildStep.inputId.path
-              .replaceFirst('lib/', '')}");
+      path =
+          "package:${buildStep.inputId.package}/${buildStep.inputId.path.replaceFirst('lib/', '')}";
     } else {
-      collector.dWriter.appendImport("${buildStep.inputId.path};");
+      path = "${buildStep.inputId.path}";
     }
-
 
     var aliasNamesField = annotation.peek("aliasNames");
     var urlField = annotation.peek("url");
@@ -50,7 +49,8 @@ class MxcRouterGen extends GeneratorForAnnotation<MRouter> {
         url: urlField.stringValue,
         desc: descField?.stringValue ?? '',
         aliasNames: aliasNamesField.listValue ?? [],
-        params: paramsField?.mapValue ?? {});
+        params: paramsField?.mapValue ?? {},
+        path: path);
 
     collector.collect(urlField.stringValue, _router, element.name);
 
@@ -64,11 +64,9 @@ class MXCWriteRouterGen extends GeneratorForAnnotation<MXCWriterRouter> {
   }
 
   @override
-  generateForAnnotatedElement(Element element, ConstantReader annotation,
-      BuildStep buildStep) {
+  generateForAnnotatedElement(
+      Element element, ConstantReader annotation, BuildStep buildStep) {
     if (element is! ClassElement) throw "must annotated on class";
-
-
 
     return getCollector().write();
   }

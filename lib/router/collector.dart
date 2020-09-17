@@ -47,6 +47,20 @@ class Collector {
     List<SwitchTplModel> routerArgs = [];
 
     _params.forEach((key, value) {
+
+      List<String> _aliasName = value.aliasNames.map((e) {
+        return e.toStringValue();
+      }).toList();
+
+      dWriter.appendComment('-----------------------------------------------------------------');
+
+      dWriter.appendComment('routerName == ${value.url}');
+      dWriter.appendComment('packagePath == ${value.path}');
+      dWriter.appendComment('className == ${_clsCaches[key]}');
+      dWriter.appendComment('aliasNames == ${_aliasName.toString()}');
+
+      dWriter.appendComment('-----------------------------------------------------------------');
+      dWriter.appendImport(value.path);
       Map<DartObject, DartObject> params = value.params;
       Map<FieldInfo, FieldInfo> _paramsInfo = {};
       if (params != null) {
@@ -81,9 +95,7 @@ class Collector {
     });
       ''';
 
-      List<String> _aliasName = value.aliasNames.map((e) {
-        return e.toStringValue();
-      }).toList();
+
 
       routerArgs.add(SwitchTplModel('${value.url}', '$_switchTplContent',
           switchCases: _aliasName));
